@@ -1,0 +1,11 @@
+[package]
+name = "propagator"
+version = "0.1.0"
+edition = "2024"
+description = "Deterministic state propagation for physical systems"
+license = "MIT"
+
+[dependencies]
+glam = "0.29"
+
+[dev-dependencies]
