@@ -1,6 +1,6 @@
-use glam::Vec3;
-use crate::state::RigidBodyState;
 use crate::env::Environment;
+use crate::state::RigidBodyState;
+use glam::Vec3;
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Wrench {

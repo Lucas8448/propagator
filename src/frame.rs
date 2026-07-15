@@ -1,4 +1,4 @@
-use glam::{Vec3, Quat};
+use glam::{Quat, Vec3};
 
 #[inline]
 pub fn body_to_world(v_body: Vec3, orient: Quat) -> Vec3 {
