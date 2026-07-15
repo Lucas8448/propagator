@@ -4,6 +4,8 @@ Deterministic state propagation and environment modeling for physical systems.
 
 `propagator` is a compact Rust flight-dynamics core for propagating a rigid-body rocket state through time. It is framed for 6-DOF trajectory propagation work like Propulse NTNU's Penumbra simulator: initialize position, velocity, attitude, and angular velocity; evaluate forces and moments against an environment; integrate forward deterministically; repeat.
 
+For recruiters: this repo is meant to show systems-simulation judgment, not a claimed production flight solver. The useful signal is the clean split between state, environment, forces, integration, and tests, with limitations called out instead of hidden.
+
 The current code is intentionally small. It provides the propagation loop, rigid-body state, frame transforms, a flat-earth environment, a gravity force model, and a semi-implicit Euler integrator. Atmosphere, aerodynamic drag, wind perturbations, thrust, staging, and full coupled rotational dynamics are roadmap items rather than implemented features.
 
 ## Architecture
@@ -32,7 +34,7 @@ flowchart LR
 | Module | Role |
 | --- | --- |
 | `state` | Defines `RigidBodyState { pos, vel, orient, ang_vel }`. |
-| `env` | Defines the `Environment` trait and `FlatEarth` implementation. |
+| `env` | Defines the `Environment` trait plus `FlatEarth` and `ConstantWind` implementations. |
 | `forces` | Defines `Wrench`, `ForceModel`, and the built-in `Gravity` force. |
 | `integrator` | Defines the `Integrator` trait and `SemiImplicitEuler`. |
 | `sim` | Owns the simulation state, sums force models, computes derivatives, and steps the integrator. |
@@ -116,13 +118,13 @@ $$
 \mathbf g(\mathbf r),\quad \mathbf w(\mathbf r, t)
 $$
 
-`FlatEarth` currently implements constant gravity in the world frame:
+`FlatEarth` implements constant gravity in the world frame:
 
 $$
 \mathbf g = \begin{bmatrix}0 \\ 0 \\ -g\end{bmatrix}, \quad g = 9.81\ \mathrm{m/s^2}
 $$
 
-and zero wind:
+and zero wind. `ConstantWind` keeps the same gravity model but returns a configured world-frame wind vector:
 
 $$
 \mathbf w = \mathbf 0
@@ -134,7 +136,7 @@ $$
 \mathbf F_g = m\mathbf g,\quad \mathbf M_g = \mathbf 0
 $$
 
-There is currently no atmosphere density model, aerodynamic drag model, thrust model, or wind field beyond the zero-wind `FlatEarth` implementation.
+There is currently no atmosphere density model, aerodynamic drag model, or thrust model. Wind is exposed through `Environment::wind`; the built-in implementation is only a constant vector.
 
 ### Coordinate frames
 
@@ -155,9 +157,10 @@ cargo test
 Sample output:
 
 ```text
-running 0 tests
+running 1 test
+test env::tests::constant_wind_returns_configured_vector ... ok
 
-test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 Doc-tests propagator
 
@@ -169,10 +172,10 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 Minimal usage:
 
 ```rust
-use propagator::{FlatEarth, Gravity, RigidBodyState, SemiImplicitEuler, Sim, Vec3};
+use propagator::{ConstantWind, Gravity, RigidBodyState, SemiImplicitEuler, Sim, Vec3};
 
 let state = RigidBodyState::new();
-let env = FlatEarth::new();
+let env = ConstantWind::new(Vec3::new(2.0, 0.0, 0.0));
 let integrator = SemiImplicitEuler::new();
 let gravity = Gravity::new(1.0);
 
@@ -209,6 +212,5 @@ cargo bench
 
 1. 3-DOF trajectory mode for fast point-mass ascent studies.
 2. Full 6-DOF rocket dynamics with aerodynamic forces, aerodynamic moments, thrust, and coupled rigid-body rotational dynamics.
-3. Wind perturbations and nonzero wind fields through the existing `Environment::wind` hook.
-4. Atmosphere model for density, pressure, temperature, Mach-dependent coefficients, and drag.
-5. Multi-stage rocket support with changing mass properties, staging events, and per-stage force models.
+3. Atmosphere model for density, pressure, temperature, Mach-dependent coefficients, and drag.
+4. Multi-stage rocket support with changing mass properties, staging events, and per-stage force models.

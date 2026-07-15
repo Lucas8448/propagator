@@ -1,5 +1,5 @@
-use glam::Quat;
 use crate::state::RigidBodyState;
+use glam::Quat;
 
 pub trait Integrator {
     fn step(&self, state: &RigidBodyState, deriv: &RigidBodyState, dt: f32) -> RigidBodyState;

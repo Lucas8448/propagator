@@ -1,8 +1,8 @@
-use glam::Vec3;
-use crate::state::RigidBodyState;
 use crate::env::Environment;
 use crate::forces::{ForceModel, Wrench};
 use crate::integrator::Integrator;
+use crate::state::RigidBodyState;
+use glam::Vec3;
 
 pub struct Sim<'a> {
     pub state: RigidBodyState,
